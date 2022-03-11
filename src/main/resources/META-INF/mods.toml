@@ -6,8 +6,8 @@ license="MIT License"
 modId="starvingtotem"
 version="${file.jarVersion}"
 displayName="Starving Totem"
-#updateJSONURL="https://change.me.example.invalid/updates.json" #optional
-#displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
+#updateJSONURL="https://change.me.example.invalid/updates.json"
+#displayURL="https://change.me.to.your.mods.homepage.example.invalid/"
 logoFile="logo.png" #optional
 credits="Tuttita (Author, Artist), Sarinsa (Coding)"
 authors="Tuttita"
@@ -18,13 +18,13 @@ Yeah.
 [[dependencies.starvingtotem]] #
     modId="forge"
     mandatory=true
-    versionRange="[36,)"
+    versionRange="[36,]"
     ordering="NONE"
     side="BOTH"
 
 [[dependencies.starvingtotem]]
     modId="minecraft"
     mandatory=true
-    versionRange="[1.16.5)"
+    versionRange="[1.16.5]"
     ordering="NONE"
     side="BOTH"
