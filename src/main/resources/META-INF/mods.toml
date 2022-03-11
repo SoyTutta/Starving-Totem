@@ -1,0 +1,30 @@
+modLoader="javafml"
+loaderVersion="[36,)"
+license="MIT License"
+
+[[mods]]
+modId="starvingtotem"
+version="${file.jarVersion}"
+displayName="Starving Totem"
+#updateJSONURL="https://change.me.example.invalid/updates.json" #optional
+#displayURL="https://change.me.to.your.mods.homepage.example.invalid/" #optional
+logoFile="logo.png" #optional
+credits="Tuttita (Author, Artist), Sarinsa (Coding)"
+authors="Tuttita"
+description='''
+Yeah.
+'''
+
+[[dependencies.starvingtotem]] #
+    modId="forge"
+    mandatory=true
+    versionRange="[36,)"
+    ordering="NONE"
+    side="BOTH"
+
+[[dependencies.starvingtotem]]
+    modId="minecraft"
+    mandatory=true
+    versionRange="[1.16.5)"
+    ordering="NONE"
+    side="BOTH"
