@@ -15,7 +15,8 @@ public class STEntities {
     public static final DeferredRegister<EntityType<?>> ENTITIES = DeferredRegister.create(ForgeRegistries.ENTITIES, StarvingTotem.MODID);
 
 
-    public static final RegistryObject<EntityType<FamilyAltarEntity>> FAMILY_ALTAR = register("family_altar", EntityType.Builder.of(FamilyAltarEntity::new, EntityClassification.MISC));
+    public static final RegistryObject<EntityType<FamilyAltarEntity>> FAMILY_ALTAR =
+            register("family_altar", EntityType.Builder.of(FamilyAltarEntity::new, EntityClassification.MISC).sized(1.0F, 1.0F).clientTrackingRange(10));
 
 
     public static void createEntityAttributes(EntityAttributeCreationEvent event) {

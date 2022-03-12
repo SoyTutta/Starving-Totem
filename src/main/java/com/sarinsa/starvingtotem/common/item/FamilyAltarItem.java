@@ -4,25 +4,23 @@ import com.sarinsa.starvingtotem.common.core.registry.STEntities;
 import com.sarinsa.starvingtotem.common.entity.FamilyAltarEntity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
-import net.minecraft.item.BlockItemUseContext;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.ItemUseContext;
+import net.minecraft.item.*;
+import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.util.ActionResultType;
 import net.minecraft.util.Direction;
 import net.minecraft.util.SoundCategory;
 import net.minecraft.util.SoundEvents;
 import net.minecraft.util.math.AxisAlignedBB;
 import net.minecraft.util.math.BlockPos;
-import net.minecraft.util.math.MathHelper;
 import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
+import net.minecraftforge.common.util.Constants;
 
 public class FamilyAltarItem extends Item {
 
     public FamilyAltarItem() {
-        super(new Item.Properties());
+        super(new Item.Properties().stacksTo(1).tab(ItemGroup.TAB_MISC));
     }
 
     @Override
@@ -48,10 +46,11 @@ public class FamilyAltarItem extends Item {
                     if (familyAltar == null) {
                         return ActionResultType.FAIL;
                     }
-                    serverWorld.addFreshEntityWithPassengers(familyAltar);
-                    float yRot = (float) MathHelper.floor((MathHelper.wrapDegrees(useContext.getRotation() - 180.0F) + 22.5F) / 45.0F) * 45.0F;
+                    float yRot = useContext.getHorizontalDirection().getOpposite().toYRot();
                     familyAltar.moveTo(familyAltar.getX(), familyAltar.getY(), familyAltar.getZ(), yRot, 0.0F);
-                    world.addFreshEntity(familyAltar);
+                    serverWorld.addFreshEntityWithPassengers(familyAltar);
+
+                    FamilyAltarEntity.setAltarState(useContext.getItemInHand().getOrCreateTag(), familyAltar);
                     world.playSound(null, familyAltar.getX(), familyAltar.getY(), familyAltar.getZ(), SoundEvents.ARMOR_STAND_PLACE, SoundCategory.BLOCKS, 0.75F, 0.8F);
                 }
                 itemStack.shrink(1);
