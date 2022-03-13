@@ -1,17 +1,24 @@
 buildscript {
     repositories {
         maven { url = 'https://maven.minecraftforge.net' }
+        maven { url = "https://repo.spongepowered.org/repository/maven-public/" }
         mavenCentral()
     }
     dependencies {
         classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '5.1.+', changing: true
+        classpath group: "org.spongepowered", name: "mixingradle", version: "0.7-SNAPSHOT"
     }
 }
 apply plugin: 'net.minecraftforge.gradle'
 apply plugin: 'eclipse'
 apply plugin: 'maven-publish'
+apply plugin: "org.spongepowered.mixin"
 
-version = '0.0.1'
+mixin {
+    add sourceSets.main, "starvingtotem.mixins.refmap.json"
+}
+
+version = "${mc_version}-${mod_version}"
 group = 'com.sarinsa.starvingtotem'
 archivesBaseName = 'starvingtotem'
 
@@ -19,7 +26,7 @@ java.toolchain.languageVersion = JavaLanguageVersion.of(8)
 
 println('Java: ' + System.getProperty('java.version') + ' JVM: ' + System.getProperty('java.vm.version') + '(' + System.getProperty('java.vendor') + ') Arch: ' + System.getProperty('os.arch'))
 minecraft {
-    mappings channel: 'official', version: '1.16.5'
+    mappings channel: 'official', version: "${mc_version}"
     // accessTransformer = file('src/main/resources/META-INF/accesstransformer.cfg')
 
     runs {
@@ -27,6 +34,11 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+
+            property 'mixin.env.disableRefMap', 'true'
+            property "mixin.debug.export", "true"
+
+            arg "-mixin.config=starvingtotem.mixins.json"
 
             mods {
                 examplemod {
@@ -39,6 +51,11 @@ minecraft {
             workingDirectory project.file('run')
             property 'forge.logging.markers', 'REGISTRIES'
             property 'forge.logging.console.level', 'debug'
+
+            property 'mixin.env.disableRefMap', 'true'
+            property "mixin.debug.export", "true"
+
+            arg "-mixin.config=starvingtotem.mixins.json"
 
             mods {
                 examplemod {
@@ -65,8 +82,19 @@ minecraft {
 
 sourceSets.main.resources { srcDir 'src/generated/resources' }
 
+repositories {
+    maven {
+        name 'prog'
+        url "https://dvs1.progwml6.com/files/maven"
+    }
+}
+
 dependencies {
-    minecraft 'net.minecraftforge:forge:1.16.5-36.2.30'
+    minecraft "net.minecraftforge:forge:${mc_version}-${forge_version}"
+
+    runtimeOnly fg.deobf("mezz.jei:jei-${mc_version}:${jei_version}")
+
+    annotationProcessor 'org.spongepowered:mixin:0.8.2:processor'
 }
 
 jar {
@@ -78,7 +106,8 @@ jar {
             "Implementation-Title": project.name,
             "Implementation-Version": "${version}",
             "Implementation-Vendor" :"Sarinsa",
-            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
+            "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+            "MixinConfigs": "starvingtotem.mixins.json"
         ])
     }
 }

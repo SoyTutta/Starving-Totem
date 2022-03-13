@@ -1,0 +1,15 @@
+{
+  "required": true,
+  "package": "com.sarinsa.starvingtotem.common.mixin",
+  "compatibilityLevel": "JAVA_8",
+  "minVersion": "0.8",
+  "refmap": "starvingtotem.mixins.refmap.json",
+  "mixins": [
+    "LivingEntityMixin"
+  ],
+  "client": [],
+  "server": [],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

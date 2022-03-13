@@ -12,11 +12,15 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.LightningBoltEntity;
+import net.minecraft.entity.item.*;
+import net.minecraft.entity.item.minecart.AbstractMinecartEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.inventory.EquipmentSlotType;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
+import net.minecraft.item.Items;
+import net.minecraft.item.SpawnEggItem;
 import net.minecraft.nbt.CompoundNBT;
 import net.minecraft.network.datasync.DataParameter;
 import net.minecraft.network.datasync.DataSerializers;
@@ -26,12 +30,13 @@ import net.minecraft.particles.BlockParticleData;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.*;
+import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
-import net.minecraft.world.EmptyBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
 import net.minecraftforge.api.distmarker.OnlyIn;
+import net.minecraftforge.common.ForgeSpawnEggItem;
 import net.minecraftforge.common.util.Constants;
 
 import javax.annotation.Nonnull;
@@ -44,12 +49,15 @@ import java.util.List;
  */
 public class FamilyAltarEntity extends LivingEntity {
 
+    public enum AltarState {
+        NEUTRAL,
+        HAPPY,
+        ANGERED;
+    }
+
     public static final List<Item> ACCEPTED_CAKES = new ArrayList<>();
 
-    // 0 - Neutral
-    // 1 - Happy
-    // 2 - Angered
-    public static final DataParameter<Integer> ALTAR_STATE = EntityDataManager.defineId(FamilyAltarEntity.class, DataSerializers.INT);
+    public static final DataParameter<Integer> ALTAR_STATE_ID = EntityDataManager.defineId(FamilyAltarEntity.class, DataSerializers.INT);
     public static final DataParameter<ItemStack> HELD_CAKE = EntityDataManager.defineId(FamilyAltarEntity.class, DataSerializers.ITEM_STACK);
 
     private final ImmutableList<ItemStack> armorItems = ImmutableList.of();
@@ -64,19 +72,19 @@ public class FamilyAltarEntity extends LivingEntity {
     @Override
     protected void defineSynchedData() {
         super.defineSynchedData();
-        this.entityData.define(ALTAR_STATE, AltarState.NEUTRAL.ordinal());
+        this.entityData.define(ALTAR_STATE_ID, AltarState.NEUTRAL.ordinal());
         this.entityData.define(HELD_CAKE, ItemStack.EMPTY);
     }
 
     public AltarState getAltarState() {
-        return AltarState.values()[this.entityData.get(ALTAR_STATE)];
+        return AltarState.values()[this.entityData.get(ALTAR_STATE_ID)];
     }
 
     public void setAltarState(@Nonnull AltarState state) {
         if (this.getAltarState() == state)
             return;
 
-        this.entityData.set(ALTAR_STATE, state.ordinal());
+        this.entityData.set(ALTAR_STATE_ID, state.ordinal());
 
         if (state != AltarState.NEUTRAL) {
             this.resetStateTime();
@@ -125,11 +133,17 @@ public class FamilyAltarEntity extends LivingEntity {
         super.tick();
 
         if (!this.level.isClientSide) {
-            if (this.getAltarState() != AltarState.NEUTRAL) {
+            AltarState state = this.getAltarState();
+
+            if (state != AltarState.NEUTRAL) {
                 if (this.stateTime > 0) {
                     --this.stateTime;
                 }
                 if (this.stateTime <= 0) {
+                    if (state == AltarState.HAPPY) {
+                        this.setHeldCake(ItemStack.EMPTY);
+                        this.showCakeVanishParticles();
+                    }
                     this.setAltarState(AltarState.NEUTRAL);
                 }
             }
@@ -406,10 +420,10 @@ public class FamilyAltarEntity extends LivingEntity {
 
             if (type != null) {
                 for (int i = 0; i < 5; ++i) {
-                    double d0 = serverWorld.random.nextGaussian() * 0.02D;
-                    double d1 = serverWorld.random.nextGaussian() * 0.02D;
-                    double d2 = serverWorld.random.nextGaussian() * 0.02D;
-                    serverWorld.sendParticles(type, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), 1, 0.05D, d0, d1, d2);
+                    double xSpeed = serverWorld.random.nextGaussian() * 0.02D;
+                    double ySpeed = serverWorld.random.nextGaussian() * 0.02D;
+                    double zSpeed = serverWorld.random.nextGaussian() * 0.02D;
+                    serverWorld.sendParticles(type, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), 1, 0.05D, xSpeed, ySpeed, zSpeed);
                 }
             }
         }
@@ -420,10 +434,10 @@ public class FamilyAltarEntity extends LivingEntity {
             ServerWorld serverWorld = (ServerWorld) this.level;
 
             for (int i = 0; i < 7; ++i) {
-                double d0 = serverWorld.random.nextGaussian() * 0.02D;
-                double d1 = serverWorld.random.nextGaussian() * 0.02D;
-                double d2 = serverWorld.random.nextGaussian() * 0.02D;
-                serverWorld.sendParticles(ParticleTypes.SMOKE, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), 1, 0.05D, d0, d1, d2);
+                double xSpeed = serverWorld.random.nextGaussian() * 0.02D;
+                double ySpeed = serverWorld.random.nextGaussian() * 0.02D;
+                double zSpeed = serverWorld.random.nextGaussian() * 0.02D;
+                serverWorld.sendParticles(ParticleTypes.SMOKE, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), 1, 0.05D, xSpeed, ySpeed, zSpeed);
             }
         }
     }
@@ -478,6 +492,11 @@ public class FamilyAltarEntity extends LivingEntity {
         return entity instanceof PlayerEntity && !this.level.mayInteract((PlayerEntity) entity, this.blockPosition());
     }
 
+    @Override
+    public ItemStack getPickedResult(RayTraceResult target) {
+        return new ItemStack(STItems.FAMILY_ALTAR.get());
+    }
+
     private void causeDamage(float damage) {
         float health = this.getHealth();
         health -= damage;
@@ -509,11 +528,5 @@ public class FamilyAltarEntity extends LivingEntity {
 
     private void playBrokenSound() {
         this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ARMOR_STAND_BREAK, this.getSoundSource(), 1.0F, 1.0F);
-    }
-
-    public enum AltarState {
-        NEUTRAL,
-        HAPPY,
-        ANGERED;
     }
 }
