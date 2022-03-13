@@ -3,6 +3,7 @@ package com.sarinsa.starvingtotem.client.renderer.entity;
 import com.mojang.blaze3d.matrix.MatrixStack;
 import com.sarinsa.starvingtotem.common.core.StarvingTotem;
 import com.sarinsa.starvingtotem.common.entity.FamilyAltarEntity;
+import net.minecraft.client.renderer.entity.ArmorStandRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererManager;
 import net.minecraft.client.renderer.entity.LivingRenderer;
 import net.minecraft.util.ResourceLocation;
@@ -19,6 +20,7 @@ public class FamilyAltarRenderer<T extends FamilyAltarEntity> extends LivingRend
 
     public FamilyAltarRenderer(EntityRendererManager rendererManager) {
         super(rendererManager, new FamilyAltarModel<>(), 0.4F);
+        this.addLayer(new FamilyAltarHeldCakeLayer<>(this));
     }
 
     @Override

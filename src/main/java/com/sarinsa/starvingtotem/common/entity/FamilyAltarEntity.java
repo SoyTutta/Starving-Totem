@@ -6,15 +6,12 @@ import com.sarinsa.starvingtotem.common.core.registry.STEffects;
 import com.sarinsa.starvingtotem.common.core.registry.STItems;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
-import net.minecraft.client.renderer.entity.ArmorStandRenderer;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.LivingEntity;
 import net.minecraft.entity.effect.LightningBoltEntity;
-import net.minecraft.entity.item.ArmorStandEntity;
-import net.minecraft.entity.merchant.villager.VillagerEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.entity.projectile.AbstractArrowEntity;
 import net.minecraft.inventory.EquipmentSlotType;
@@ -26,13 +23,11 @@ import net.minecraft.network.datasync.DataSerializers;
 import net.minecraft.network.datasync.EntityDataManager;
 import net.minecraft.particles.BasicParticleType;
 import net.minecraft.particles.BlockParticleData;
-import net.minecraft.particles.ParticleType;
 import net.minecraft.particles.ParticleTypes;
 import net.minecraft.potion.EffectInstance;
-import net.minecraft.util.DamageSource;
-import net.minecraft.util.HandSide;
-import net.minecraft.util.SoundEvent;
-import net.minecraft.util.SoundEvents;
+import net.minecraft.util.*;
+import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.world.EmptyBlockReader;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
@@ -55,6 +50,7 @@ public class FamilyAltarEntity extends LivingEntity {
     // 1 - Happy
     // 2 - Angered
     public static final DataParameter<Integer> ALTAR_STATE = EntityDataManager.defineId(FamilyAltarEntity.class, DataSerializers.INT);
+    public static final DataParameter<ItemStack> HELD_CAKE = EntityDataManager.defineId(FamilyAltarEntity.class, DataSerializers.ITEM_STACK);
 
     private final ImmutableList<ItemStack> armorItems = ImmutableList.of();
     public long lastHit;
@@ -69,6 +65,7 @@ public class FamilyAltarEntity extends LivingEntity {
     protected void defineSynchedData() {
         super.defineSynchedData();
         this.entityData.define(ALTAR_STATE, AltarState.NEUTRAL.ordinal());
+        this.entityData.define(HELD_CAKE, ItemStack.EMPTY);
     }
 
     public AltarState getAltarState() {
@@ -115,6 +112,14 @@ public class FamilyAltarEntity extends LivingEntity {
         this.stateTime = 12000;
     }
 
+    public ItemStack getHeldCake() {
+        return this.entityData.get(HELD_CAKE);
+    }
+
+    public void setHeldCake(@Nonnull ItemStack itemStack) {
+        this.entityData.set(HELD_CAKE, itemStack);
+    }
+
     @Override
     public void tick() {
         super.tick();
@@ -138,11 +143,14 @@ public class FamilyAltarEntity extends LivingEntity {
 
     @Override
     public ItemStack getItemBySlot(EquipmentSlotType slotType) {
-        return ItemStack.EMPTY;
+        return this.getHeldCake();
     }
 
     @Override
     public void setItemSlot(EquipmentSlotType slotType, ItemStack itemStack) {
+        if (slotType == EquipmentSlotType.MAINHAND) {
+            this.setHeldCake(itemStack);
+        }
     }
 
     @Override
@@ -174,7 +182,7 @@ public class FamilyAltarEntity extends LivingEntity {
     }
 
     @Override
-    protected float tickHeadTurn(float p_110146_1_, float p_110146_2_) {
+    protected float tickHeadTurn(float no, float way) {
         this.yBodyRotO = this.yRotO;
         this.yBodyRot = this.yRot;
         return 0.0F;
@@ -190,6 +198,94 @@ public class FamilyAltarEntity extends LivingEntity {
     public void setYHeadRot(float rot) {
         this.yBodyRotO = this.yRotO = rot;
         this.yHeadRotO = this.yHeadRot = rot;
+    }
+
+    @Override
+    public void addAdditionalSaveData(CompoundNBT compoundNBT) {
+        super.addAdditionalSaveData(compoundNBT);
+        CompoundNBT cakeTag = new CompoundNBT();
+
+        if (!this.getHeldCake().isEmpty()) {
+            this.getHeldCake().save(cakeTag);
+            compoundNBT.put("HeldCake", cakeTag);
+        }
+        compoundNBT.putInt("AltarState", this.getAltarState().ordinal());
+        compoundNBT.putInt("StateTime", this.stateTime);
+    }
+
+    @Override
+    public void readAdditionalSaveData(CompoundNBT compoundNBT) {
+        super.readAdditionalSaveData(compoundNBT);
+        if (compoundNBT.contains("HeldCake", Constants.NBT.TAG_COMPOUND)) {
+            CompoundNBT cakeTag = compoundNBT.getCompound("HeldCake");
+            this.setHeldCake(ItemStack.of(cakeTag));
+        }
+        if (compoundNBT.contains("AltarState", Constants.NBT.TAG_ANY_NUMERIC)) {
+            int state = compoundNBT.getInt("AltarState");
+
+            if (state > AltarState.values().length || state < 0) {
+                StarvingTotem.LOGGER.error("Tried to load altar state of Family Altar, but the read state ID was not valid. Received invalid state ID \"{}\"; must range from 0 to \"{}\".", state, AltarState.values().length);
+                StarvingTotem.LOGGER.error("Problematic Family Altar location: {}, {}", this.level.dimension().toString(), this.blockPosition().toString());
+            }
+            else {
+                this.setAltarState(AltarState.values()[state]);
+            }
+        }
+        if (compoundNBT.contains("StateTime", Constants.NBT.TAG_ANY_NUMERIC)) {
+            int stateTime = compoundNBT.getInt("StateTime");
+
+            if (stateTime < 0) {
+                StarvingTotem.LOGGER.error("Tried to load Family Altar state time, but state time was less than 0 ticks. This is an error");
+                StarvingTotem.LOGGER.error("Problematic Family Altar location: {}, {}", this.level.dimension().toString(), this.blockPosition().toString());
+            }
+        }
+    }
+
+    @Override
+    public ActionResultType interactAt(PlayerEntity player, Vector3d vec3d, Hand hand) {
+        ItemStack heldCake = this.getHeldCake();
+
+        if (player.isShiftKeyDown()) {
+            if (!heldCake.isEmpty()) {
+                Block.popResource(this.level, this.blockPosition(), heldCake.copy());
+                this.setHeldCake(ItemStack.EMPTY);
+                this.setAltarState(AltarState.NEUTRAL);
+            }
+            Block.popResource(this.level, this.blockPosition(), writeDataToStack(this));
+
+            this.remove();
+            return ActionResultType.sidedSuccess(this.level.isClientSide);
+        }
+        ItemStack itemStack = player.getItemInHand(hand);
+
+        if (!heldCake.isEmpty()) {
+            return ActionResultType.FAIL;
+        }
+        else {
+            if (ACCEPTED_CAKES.contains(itemStack.getItem())) {
+                AltarState state = this.getAltarState();
+
+                if (state == AltarState.HAPPY) {
+                    return ActionResultType.PASS;
+                }
+                else {
+                    if (state != AltarState.ANGERED) {
+                        player.addEffect(new EffectInstance(STEffects.SWEET_BLESSING.get(), 12000));
+                        this.setAltarState(AltarState.HAPPY);
+                    }
+                    else {
+                        this.setAltarState(AltarState.NEUTRAL);
+                    }
+                    this.setHeldCake(itemStack.copy());
+                    itemStack.shrink(1);
+                    player.removeEffect(STEffects.BITTER_CURSE.get());
+                    return ActionResultType.SUCCESS;
+                }
+            }
+            else {
+                return ActionResultType.PASS;
+            }
+        }
     }
 
     @Override
@@ -218,11 +314,11 @@ public class FamilyAltarEntity extends LivingEntity {
                     return false;
                 }
                 else {
-                    boolean flag = damageSource.getDirectEntity() instanceof AbstractArrowEntity;
-                    boolean flag1 = flag && ((AbstractArrowEntity)damageSource.getDirectEntity()).getPierceLevel() > 0;
-                    boolean flag2 = "player".equals(damageSource.getMsgId());
+                    boolean isArrow = damageSource.getDirectEntity() instanceof AbstractArrowEntity;
+                    boolean hasPiercing = isArrow && ((AbstractArrowEntity)damageSource.getDirectEntity()).getPierceLevel() > 0;
+                    boolean isPlayer = "player".equals(damageSource.getMsgId());
 
-                    if (!flag2 && !flag) {
+                    if (!isPlayer && !isArrow) {
                         return false;
                     }
                     else if (damageSource.getEntity() instanceof PlayerEntity && !((PlayerEntity)damageSource.getEntity()).abilities.mayBuild) {
@@ -232,7 +328,7 @@ public class FamilyAltarEntity extends LivingEntity {
                         this.playBrokenSound();
                         this.showBreakingParticles();
                         this.remove();
-                        return flag1;
+                        return hasPiercing;
                     }
                     else {
                         if (damageSource.getEntity() instanceof PlayerEntity) {
@@ -242,29 +338,33 @@ public class FamilyAltarEntity extends LivingEntity {
 
                             if (!hasSilkTouch) {
                                 player.addEffect(new EffectInstance(STEffects.BITTER_CURSE.get(), 12000));
+                                player.removeEffect(STEffects.SWEET_BLESSING.get());
 
                                 if (this.getAltarState() != AltarState.ANGERED) {
                                     this.setAltarState(AltarState.ANGERED);
                                     this.showStateChangeParticles(AltarState.ANGERED);
+
+                                    if (!this.getHeldCake().isEmpty()) {
+                                        this.setHeldCake(ItemStack.EMPTY);
+                                        this.showCakeVanishParticles();
+                                    }
                                 }
+                            }
+                            ItemStack heldCake = this.getHeldCake();
+
+                            if (!heldCake.isEmpty()) {
+                                Block.popResource(this.level, this.blockPosition(), heldCake);
+                                this.setHeldCake(ItemStack.EMPTY);
                             }
                         }
                         long gameTime = this.level.getGameTime();
 
-                        if (gameTime - this.lastHit > 5L && !flag) {
+                        if (gameTime - this.lastHit > 5L && !isArrow) {
                             this.level.broadcastEntityEvent(this, (byte)32);
                             this.lastHit = gameTime;
                         }
                         else {
-                            ItemStack stack = new ItemStack(STItems.FAMILY_ALTAR.get());
-                            CompoundNBT tag = stack.getOrCreateTag();
-
-                            tag.putInt("AltarState", this.getAltarState().ordinal());
-                            tag.putInt("StateTime", this.stateTime);
-
-                            stack.setTag(tag);
-
-                            Block.popResource(this.level, this.blockPosition(), stack);
+                            Block.popResource(this.level, this.blockPosition(), writeDataToStack(this));
                             this.showBreakingParticles();
                             this.remove();
                         }
@@ -279,6 +379,17 @@ public class FamilyAltarEntity extends LivingEntity {
         else {
             return false;
         }
+    }
+
+    private static ItemStack writeDataToStack(FamilyAltarEntity entity) {
+        ItemStack stack = new ItemStack(STItems.FAMILY_ALTAR.get());
+        CompoundNBT tag = stack.getOrCreateTag();
+
+        tag.putInt("AltarState", entity.getAltarState().ordinal());
+        tag.putInt("StateTime", entity.stateTime);
+
+        stack.setTag(tag);
+        return stack;
     }
 
     private void showStateChangeParticles(AltarState state) {
@@ -300,6 +411,19 @@ public class FamilyAltarEntity extends LivingEntity {
                     double d2 = serverWorld.random.nextGaussian() * 0.02D;
                     serverWorld.sendParticles(type, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), 1, 0.05D, d0, d1, d2);
                 }
+            }
+        }
+    }
+
+    private void showCakeVanishParticles() {
+        if (this.level instanceof ServerWorld) {
+            ServerWorld serverWorld = (ServerWorld) this.level;
+
+            for (int i = 0; i < 7; ++i) {
+                double d0 = serverWorld.random.nextGaussian() * 0.02D;
+                double d1 = serverWorld.random.nextGaussian() * 0.02D;
+                double d2 = serverWorld.random.nextGaussian() * 0.02D;
+                serverWorld.sendParticles(ParticleTypes.SMOKE, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), 1, 0.05D, d0, d1, d2);
             }
         }
     }

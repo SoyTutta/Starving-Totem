@@ -5,7 +5,9 @@ import com.sarinsa.starvingtotem.common.core.registry.STEffects;
 import com.sarinsa.starvingtotem.common.core.registry.STEntities;
 import com.sarinsa.starvingtotem.common.core.registry.STItems;
 import com.sarinsa.starvingtotem.common.event.ConfigEvents;
+import com.sarinsa.starvingtotem.common.event.EntityEvents;
 import net.minecraft.util.ResourceLocation;
+import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
 import net.minecraftforge.fml.ModLoadingContext;
 import net.minecraftforge.fml.common.Mod;
@@ -27,6 +29,8 @@ public class StarvingTotem {
 
         modEventBus.addListener(STEntities::createEntityAttributes);
         modEventBus.register(new ConfigEvents());
+
+        MinecraftForge.EVENT_BUS.register(new EntityEvents());
 
         STItems.ITEMS.register(modEventBus);
         STEntities.ENTITIES.register(modEventBus);
