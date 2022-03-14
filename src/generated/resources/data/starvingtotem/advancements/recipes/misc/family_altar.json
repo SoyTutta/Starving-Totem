@@ -1,0 +1,43 @@
+{
+  "parent": "minecraft:recipes/root",
+  "rewards": {
+    "recipes": [
+      "starvingtotem:family_altar"
+    ]
+  },
+  "criteria": {
+    "has_totem_of_undying": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "minecraft:totem_of_undying"
+          }
+        ]
+      }
+    },
+    "has_smooth_stone_slab": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "item": "minecraft:smooth_stone_slab"
+          }
+        ]
+      }
+    },
+    "has_the_recipe": {
+      "trigger": "minecraft:recipe_unlocked",
+      "conditions": {
+        "recipe": "starvingtotem:family_altar"
+      }
+    }
+  },
+  "requirements": [
+    [
+      "has_totem_of_undying",
+      "has_smooth_stone_slab",
+      "has_the_recipe"
+    ]
+  ]
+}

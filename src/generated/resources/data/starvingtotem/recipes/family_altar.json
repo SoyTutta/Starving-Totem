@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "T",
+    "S"
+  ],
+  "key": {
+    "T": {
+      "item": "minecraft:totem_of_undying"
+    },
+    "S": {
+      "item": "minecraft:smooth_stone_slab"
+    }
+  },
+  "result": {
+    "item": "starvingtotem:family_altar"
+  }
+}
