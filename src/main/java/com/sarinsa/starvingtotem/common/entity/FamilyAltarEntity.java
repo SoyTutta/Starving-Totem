@@ -263,9 +263,9 @@ public class FamilyAltarEntity extends LivingEntity {
         ItemStack heldCake = this.getHeldCake();
 
         if (player.isShiftKeyDown()) {
-            Block.popResource(this.level, this.blockPosition(), writeDataToStack(this));
             this.setHeldCake(ItemStack.EMPTY);
             this.setAltarState(AltarState.NEUTRAL);
+            Block.popResource(this.level, this.blockPosition(), writeDataToStack(this));
             this.remove();
             return ActionResultType.sidedSuccess(this.level.isClientSide);
         }
@@ -283,7 +283,7 @@ public class FamilyAltarEntity extends LivingEntity {
                 }
                 else {
                     if (state != AltarState.ANGERED) {
-                        player.addEffect(new EffectInstance(STEffects.SWEET_BLESSING.get(), 12000));
+                        player.addEffect(new EffectInstance(STEffects.SWEET_BLESSING.get(), 12000, 0, false, false));
                         this.setAltarState(AltarState.HAPPY);
                     }
                     else {
@@ -354,7 +354,7 @@ public class FamilyAltarEntity extends LivingEntity {
                             boolean hasSilkTouch = EnchantmentHelper.getItemEnchantmentLevel(Enchantments.SILK_TOUCH, player.getMainHandItem()) > 0;
 
                             if (!hasSilkTouch) {
-                                player.addEffect(new EffectInstance(STEffects.BITTER_CURSE.get(), 12000));
+                                player.addEffect(new EffectInstance(STEffects.BITTER_CURSE.get(), 12000, 0, false, false));
                                 player.removeEffect(STEffects.SWEET_BLESSING.get());
 
                                 if (this.getAltarState() != AltarState.ANGERED) {
