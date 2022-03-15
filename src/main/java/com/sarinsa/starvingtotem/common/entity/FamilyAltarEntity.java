@@ -4,8 +4,10 @@ import com.google.common.collect.ImmutableList;
 import com.sarinsa.starvingtotem.common.core.StarvingTotem;
 import com.sarinsa.starvingtotem.common.core.registry.STEffects;
 import com.sarinsa.starvingtotem.common.core.registry.STItems;
+import com.sarinsa.starvingtotem.common.util.References;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
+import net.minecraft.client.entity.player.ClientPlayerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
@@ -32,6 +34,7 @@ import net.minecraft.potion.EffectInstance;
 import net.minecraft.util.*;
 import net.minecraft.util.math.RayTraceResult;
 import net.minecraft.util.math.vector.Vector3d;
+import net.minecraft.util.text.TranslationTextComponent;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 import net.minecraftforge.api.distmarker.Dist;
@@ -260,13 +263,9 @@ public class FamilyAltarEntity extends LivingEntity {
         ItemStack heldCake = this.getHeldCake();
 
         if (player.isShiftKeyDown()) {
-            if (!heldCake.isEmpty()) {
-                Block.popResource(this.level, this.blockPosition(), heldCake.copy());
-                this.setHeldCake(ItemStack.EMPTY);
-                this.setAltarState(AltarState.NEUTRAL);
-            }
             Block.popResource(this.level, this.blockPosition(), writeDataToStack(this));
-
+            this.setHeldCake(ItemStack.EMPTY);
+            this.setAltarState(AltarState.NEUTRAL);
             this.remove();
             return ActionResultType.sidedSuccess(this.level.isClientSide);
         }
@@ -297,6 +296,10 @@ public class FamilyAltarEntity extends LivingEntity {
                 }
             }
             else {
+                if (!itemStack.isEmpty()) {
+                    player.displayClientMessage(new TranslationTextComponent(References.ALTAR_INTERACT_TEXT), true);
+                    return ActionResultType.SUCCESS;
+                }
                 return ActionResultType.PASS;
             }
         }
@@ -363,12 +366,6 @@ public class FamilyAltarEntity extends LivingEntity {
                                         this.showCakeVanishParticles();
                                     }
                                 }
-                            }
-                            ItemStack heldCake = this.getHeldCake();
-
-                            if (!heldCake.isEmpty()) {
-                                Block.popResource(this.level, this.blockPosition(), heldCake);
-                                this.setHeldCake(ItemStack.EMPTY);
                             }
                         }
                         long gameTime = this.level.getGameTime();

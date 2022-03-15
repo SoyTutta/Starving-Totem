@@ -1,5 +1,6 @@
 package com.sarinsa.starvingtotem.common.hooks.mixin;
 
+import com.sarinsa.starvingtotem.common.core.config.STCommonConfig;
 import com.sarinsa.starvingtotem.common.core.registry.STEffects;
 import net.minecraft.entity.LivingEntity;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -16,7 +17,12 @@ public class CommonMixinHooks {
 
     public static int getBlessingStackSize(LivingEntity entity, Random random, int originalSize) {
         if (entity.hasEffect(STEffects.SWEET_BLESSING.get())) {
-            if (random.nextInt(4) == 0) {
+            double keepTotemChance = STCommonConfig.COMMON.getKeepTotemChance();
+
+            if (keepTotemChance <= 0.0D || keepTotemChance > 1.0D)
+                return originalSize;
+
+            if (random.nextFloat() <= STCommonConfig.COMMON.getKeepTotemChance()) {
                 return 0;
             }
         }
