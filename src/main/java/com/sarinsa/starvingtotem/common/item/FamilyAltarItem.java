@@ -49,7 +49,7 @@ public class FamilyAltarItem extends Item {
                     serverWorld.addFreshEntityWithPassengers(familyAltar);
 
                     FamilyAltarEntity.setAltarState(useContext.getItemInHand().getOrCreateTag(), familyAltar);
-                    world.playSound(null, familyAltar.getX(), familyAltar.getY(), familyAltar.getZ(), SoundEvents.ARMOR_STAND_PLACE, SoundCategory.BLOCKS, 0.75F, 0.8F);
+                    world.playSound(null, familyAltar.getX(), familyAltar.getY(), familyAltar.getZ(), SoundEvents.METAL_PLACE, SoundCategory.BLOCKS, 0.75F, 0.8F);
                 }
                 itemStack.shrink(1);
                 return ActionResultType.sidedSuccess(world.isClientSide);

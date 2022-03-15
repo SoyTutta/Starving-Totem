@@ -8,6 +8,7 @@ import com.sarinsa.starvingtotem.common.util.References;
 import net.minecraft.block.Block;
 import net.minecraft.block.Blocks;
 import net.minecraft.client.entity.player.ClientPlayerEntity;
+import net.minecraft.client.world.ClientWorld;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.Entity;
@@ -264,8 +265,9 @@ public class FamilyAltarEntity extends LivingEntity {
 
         if (player.isShiftKeyDown()) {
             this.setHeldCake(ItemStack.EMPTY);
-            this.setAltarState(AltarState.NEUTRAL);
+            this.setAltarState(this.getAltarState() == AltarState.ANGERED ? AltarState.ANGERED : AltarState.NEUTRAL);
             Block.popResource(this.level, this.blockPosition(), writeDataToStack(this));
+            this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.IRON_GOLEM_ATTACK, SoundCategory.BLOCKS, 0.75F, 0.8F);
             this.remove();
             return ActionResultType.sidedSuccess(this.level.isClientSide);
         }
@@ -289,6 +291,7 @@ public class FamilyAltarEntity extends LivingEntity {
                     else {
                         this.setAltarState(AltarState.NEUTRAL);
                     }
+                    this.level.broadcastEntityEvent(this, (byte) 6);
                     this.setHeldCake(itemStack.copy());
                     itemStack.shrink(1);
                     player.removeEffect(STEffects.BITTER_CURSE.get());
@@ -300,6 +303,7 @@ public class FamilyAltarEntity extends LivingEntity {
                     player.displayClientMessage(new TranslationTextComponent(References.ALTAR_INTERACT_TEXT), true);
                     return ActionResultType.SUCCESS;
                 }
+                this.level.broadcastEntityEvent(this, (byte) 5);
                 return ActionResultType.PASS;
             }
         }
@@ -371,12 +375,13 @@ public class FamilyAltarEntity extends LivingEntity {
                         long gameTime = this.level.getGameTime();
 
                         if (gameTime - this.lastHit > 5L && !isArrow) {
-                            this.level.broadcastEntityEvent(this, (byte)32);
+                            this.level.broadcastEntityEvent(this, (byte)4);
                             this.lastHit = gameTime;
                         }
                         else {
                             Block.popResource(this.level, this.blockPosition(), writeDataToStack(this));
                             this.showBreakingParticles();
+                            this.playBrokenSound();
                             this.remove();
                         }
                         return true;
@@ -442,32 +447,43 @@ public class FamilyAltarEntity extends LivingEntity {
     @Override
     @OnlyIn(Dist.CLIENT)
     public void handleEntityEvent(byte eventId) {
-        if (eventId == 32) {
-            if (this.level.isClientSide) {
-                this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.ARMOR_STAND_HIT, this.getSoundSource(), 0.3F, 1.0F, false);
-                this.lastHit = this.level.getGameTime();
-            }
-        }
-        else {
-            super.handleEntityEvent(eventId);
+        switch (eventId) {
+            case 4:
+                if (this.level.isClientSide) {
+                    this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.IRON_GOLEM_STEP, this.getSoundSource(), 0.9F, 1.0F, false);
+                    this.lastHit = this.level.getGameTime();
+                }
+                break;
+            case 5:
+                if (this.level.isClientSide) {
+                    this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.IRON_GOLEM_ATTACK, this.getSoundSource(), 0.3F, 1.0F, false);
+                }
+                break;
+            case 6:
+                if (this.level.isClientSide) {
+                    this.level.playLocalSound(this.getX(), this.getY(), this.getZ(), SoundEvents.WOOL_PLACE, this.getSoundSource(), 0.5F, 1.0F, false);
+                }
+            default:
+                super.handleEntityEvent(eventId);
+                break;
         }
     }
 
     @Override
     protected SoundEvent getFallDamageSound(int distance) {
-        return SoundEvents.ARMOR_STAND_FALL;
+        return SoundEvents.METAL_BREAK;
     }
 
     @Override
     @Nullable
     protected SoundEvent getHurtSound(DamageSource damageSource) {
-        return SoundEvents.ARMOR_STAND_HIT;
+        return SoundEvents.IRON_GOLEM_STEP;
     }
 
     @Override
     @Nullable
     protected SoundEvent getDeathSound() {
-        return SoundEvents.ARMOR_STAND_BREAK;
+        return SoundEvents.METAL_BREAK;
     }
 
     @Override
@@ -524,6 +540,6 @@ public class FamilyAltarEntity extends LivingEntity {
     }
 
     private void playBrokenSound() {
-        this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.ARMOR_STAND_BREAK, this.getSoundSource(), 1.0F, 1.0F);
+        this.level.playSound(null, this.getX(), this.getY(), this.getZ(), SoundEvents.METAL_BREAK, this.getSoundSource(), 1.0F, 1.0F);
     }
 }
