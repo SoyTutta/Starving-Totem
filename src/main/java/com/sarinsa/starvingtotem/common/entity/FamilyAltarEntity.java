@@ -420,7 +420,7 @@ public class FamilyAltarEntity extends LivingEntity {
                     double xSpeed = serverWorld.random.nextGaussian() * 0.02D;
                     double ySpeed = serverWorld.random.nextGaussian() * 0.02D;
                     double zSpeed = serverWorld.random.nextGaussian() * 0.02D;
-                    serverWorld.sendParticles(type, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), 1, 0.05D, xSpeed, ySpeed, zSpeed);
+                    serverWorld.sendParticles(type, this.getRandomX(1.0D), this.getRandomY() + 0.4D, this.getRandomZ(1.0D), 1, 0.05D, xSpeed, ySpeed, zSpeed);
                 }
             }
         }
@@ -434,7 +434,7 @@ public class FamilyAltarEntity extends LivingEntity {
                 double xSpeed = serverWorld.random.nextGaussian() * 0.02D;
                 double ySpeed = serverWorld.random.nextGaussian() * 0.02D;
                 double zSpeed = serverWorld.random.nextGaussian() * 0.02D;
-                serverWorld.sendParticles(ParticleTypes.SMOKE, this.getRandomX(1.0D), this.getRandomY() + 1.0D, this.getRandomZ(1.0D), 1, 0.05D, xSpeed, ySpeed, zSpeed);
+                serverWorld.sendParticles(ParticleTypes.SMOKE, this.getRandomX(1.0D), this.getRandomY() + 0.4D, this.getRandomZ(1.0D), 1, 0.05D, xSpeed, ySpeed, zSpeed);
             }
         }
     }
