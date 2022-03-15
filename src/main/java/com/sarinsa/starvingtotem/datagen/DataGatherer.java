@@ -16,5 +16,8 @@ public class DataGatherer {
         if (event.includeServer()) {
             generator.addProvider(new STRecipeProvider(generator));
         }
+        if (event.includeClient()) {
+            generator.addProvider(new STLangProvider(generator));
+        }
     }
 }
