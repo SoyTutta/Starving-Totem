@@ -18,10 +18,12 @@ public class STCommonConfig {
         COMMON_SPEC = commonPair.getRight();
     }
 
+    @SuppressWarnings("all")
     public static final class Common {
 
         private static final List<? extends String> defaultCakes = Arrays.asList(
-                Items.CAKE.getRegistryName().toString()
+                Items.CAKE.getRegistryName().toString(),
+                Items.PUMPKIN_PIE.getRegistryName().toString()
         );
 
         private final ForgeConfigSpec.ConfigValue<List<? extends String>> cakeList;
@@ -31,7 +33,7 @@ public class STCommonConfig {
             configBuilder.push("general");
 
             this.cakeList = configBuilder.comment("A list of items accepted as cakes that can be offered to a Family Altar.")
-                            .defineList("cake_list", () -> defaultCakes, (o) -> o instanceof String);
+                            .defineList("cake_list", defaultCakes, (o) -> o instanceof String);
 
             this.keepTotemChance = configBuilder.comment("The chance for keeping the used Totem of Undying upon death when the player " +
                     "has the Sweet Blessing effect. Value ranges from 0.0 (0% chance) to 1.0 (100% chance).")
