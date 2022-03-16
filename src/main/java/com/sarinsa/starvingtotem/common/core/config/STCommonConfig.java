@@ -23,7 +23,15 @@ public class STCommonConfig {
 
         private static final List<? extends String> defaultCakes = Arrays.asList(
                 Items.CAKE.getRegistryName().toString(),
-                Items.PUMPKIN_PIE.getRegistryName().toString()
+                Items.PUMPKIN_PIE.getRegistryName().toString(),
+                // oh man
+                "farmersdelight:cake_slice",
+                "farmersdelight:apple_pie",
+                "farmersdelight:apple_pie_slice",
+                "farmersdelight:chocolate_pie",
+                "farmersdelight:chocolate_pie_slice",
+                "farmersdelight:sweet_berry_cheesecake",
+                "farmersdelight:sweet_berry_cheesecake_slice"
         );
 
         private final ForgeConfigSpec.ConfigValue<List<? extends String>> cakeList;

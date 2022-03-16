@@ -1,7 +1,9 @@
 package com.sarinsa.starvingtotem.common.item;
 
+import com.google.common.graph.Network;
 import com.sarinsa.starvingtotem.common.core.registry.STEntities;
 import com.sarinsa.starvingtotem.common.entity.FamilyAltarEntity;
+import com.sarinsa.starvingtotem.common.network.NetworkHelper;
 import net.minecraft.entity.EntityType;
 import net.minecraft.entity.SpawnReason;
 import net.minecraft.item.*;
@@ -46,9 +48,10 @@ public class FamilyAltarItem extends Item {
                     }
                     float yRot = useContext.getHorizontalDirection().getOpposite().toYRot();
                     familyAltar.moveTo(familyAltar.getX(), familyAltar.getY(), familyAltar.getZ(), yRot, 0.0F);
-                    serverWorld.addFreshEntityWithPassengers(familyAltar);
-
+                    familyAltar.setYBodyRot(yRot);
                     FamilyAltarEntity.setAltarState(useContext.getItemInHand().getOrCreateTag(), familyAltar);
+                    serverWorld.addFreshEntityWithPassengers(familyAltar);
+                    NetworkHelper.sendAltarRotationUpdate(familyAltar, yRot);
                     world.playSound(null, familyAltar.getX(), familyAltar.getY(), familyAltar.getZ(), SoundEvents.METAL_PLACE, SoundCategory.BLOCKS, 0.75F, 0.8F);
                 }
                 itemStack.shrink(1);

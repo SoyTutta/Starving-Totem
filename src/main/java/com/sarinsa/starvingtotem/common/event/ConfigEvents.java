@@ -48,9 +48,6 @@ public class ConfigEvents {
             if (ForgeRegistries.ITEMS.containsKey(itemId)) {
                 cakes.add(ForgeRegistries.ITEMS.getValue(itemId));
             }
-            else {
-                logWarning("Found item id \"{}\" in the cake list, but no item with this ID exists in the Forge registry.", itemId);
-            }
         }
         if (!cakes.isEmpty()) {
             FamilyAltarEntity.ACCEPTED_CAKES.addAll(cakes);

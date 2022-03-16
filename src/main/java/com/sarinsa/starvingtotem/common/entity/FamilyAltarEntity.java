@@ -3,6 +3,7 @@ package com.sarinsa.starvingtotem.common.entity;
 import com.google.common.collect.ImmutableList;
 import com.sarinsa.starvingtotem.common.core.StarvingTotem;
 import com.sarinsa.starvingtotem.common.core.registry.STEffects;
+import com.sarinsa.starvingtotem.common.core.registry.STEntities;
 import com.sarinsa.starvingtotem.common.core.registry.STItems;
 import com.sarinsa.starvingtotem.common.util.References;
 import net.minecraft.block.Block;
@@ -286,6 +287,7 @@ public class FamilyAltarEntity extends LivingEntity {
                 else {
                     if (state != AltarState.ANGERED) {
                         player.addEffect(new EffectInstance(STEffects.SWEET_BLESSING.get(), 12000, 0, false, false));
+                        this.showStateChangeParticles(AltarState.HAPPY);
                         this.setAltarState(AltarState.HAPPY);
                     }
                     else {
@@ -301,10 +303,9 @@ public class FamilyAltarEntity extends LivingEntity {
             else {
                 if (!itemStack.isEmpty()) {
                     player.displayClientMessage(new TranslationTextComponent(References.ALTAR_INTERACT_TEXT), true);
-                    return ActionResultType.SUCCESS;
                 }
                 this.level.broadcastEntityEvent(this, (byte) 5);
-                return ActionResultType.PASS;
+                return ActionResultType.CONSUME;
             }
         }
     }
@@ -412,16 +413,18 @@ public class FamilyAltarEntity extends LivingEntity {
         if (this.level instanceof ServerWorld) {
             ServerWorld serverWorld = (ServerWorld) this.level;
             BasicParticleType type = null;
+            int count = 0;
 
             if (state == AltarState.ANGERED) {
                 type = ParticleTypes.ANGRY_VILLAGER;
+                count = 5;
             }
             else if (state == AltarState.HAPPY) {
-                type = ParticleTypes.HAPPY_VILLAGER;
+                type = ParticleTypes.TOTEM_OF_UNDYING;
+                count = 15;
             }
-
             if (type != null) {
-                for (int i = 0; i < 5; ++i) {
+                for (int i = 0; i < count; ++i) {
                     double xSpeed = serverWorld.random.nextGaussian() * 0.02D;
                     double ySpeed = serverWorld.random.nextGaussian() * 0.02D;
                     double zSpeed = serverWorld.random.nextGaussian() * 0.02D;

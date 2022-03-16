@@ -6,6 +6,7 @@ import com.sarinsa.starvingtotem.common.core.registry.STEntities;
 import com.sarinsa.starvingtotem.common.core.registry.STItems;
 import com.sarinsa.starvingtotem.common.event.ConfigEvents;
 import com.sarinsa.starvingtotem.common.event.EntityEvents;
+import com.sarinsa.starvingtotem.common.network.PacketHandler;
 import net.minecraft.util.ResourceLocation;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.eventbus.api.IEventBus;
@@ -37,6 +38,8 @@ public class StarvingTotem {
         STEffects.EFFECTS.register(modEventBus);
 
         ModLoadingContext.get().registerConfig(ModConfig.Type.COMMON, STCommonConfig.COMMON_SPEC);
+
+        PacketHandler.registerMessages();
     }
 
     public static ResourceLocation resourceLoc(String path) {
