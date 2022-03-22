@@ -1,6 +1,6 @@
 package com.sarinsa.starvingtotem.common.network.work;
 
-import com.sarinsa.starvingtotem.common.entity.FamilyAltarEntity;
+import com.sarinsa.starvingtotem.common.entity.AbstractAltarEntity;
 import com.sarinsa.starvingtotem.common.network.message.S2CUpdateAltarOrientation;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.world.ClientWorld;
@@ -16,7 +16,7 @@ public class ClientWork {
 
         Entity entity = world.getEntity(message.entityId);
 
-        if (entity instanceof FamilyAltarEntity) {
+        if (entity instanceof AbstractAltarEntity) {
             entity.setYBodyRot(message.rotation);
         }
     }

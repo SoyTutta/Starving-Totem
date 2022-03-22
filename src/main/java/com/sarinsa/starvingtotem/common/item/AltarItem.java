@@ -1,7 +1,6 @@
 package com.sarinsa.starvingtotem.common.item;
 
-import com.google.common.graph.Network;
-import com.sarinsa.starvingtotem.common.core.registry.STEntities;
+import com.sarinsa.starvingtotem.common.entity.AbstractAltarEntity;
 import com.sarinsa.starvingtotem.common.entity.FamilyAltarEntity;
 import com.sarinsa.starvingtotem.common.network.NetworkHelper;
 import net.minecraft.entity.EntityType;
@@ -17,10 +16,15 @@ import net.minecraft.util.math.vector.Vector3d;
 import net.minecraft.world.World;
 import net.minecraft.world.server.ServerWorld;
 
-public class FamilyAltarItem extends Item {
+import java.util.function.Supplier;
 
-    public FamilyAltarItem() {
+public class AltarItem extends Item {
+
+    private final Supplier<EntityType<? extends AbstractAltarEntity>> entityTypeSupplier;
+
+    public AltarItem(Supplier<EntityType<? extends AbstractAltarEntity>> entityTypeSupplier) {
         super(new Item.Properties().stacksTo(1).tab(ItemGroup.TAB_MISC));
+        this.entityTypeSupplier = entityTypeSupplier;
     }
 
     @Override
@@ -41,18 +45,18 @@ public class FamilyAltarItem extends Item {
             if (world.noCollision(null, aabb, (entity) -> true) && world.getEntities(null, aabb).isEmpty()) {
                 if (world instanceof ServerWorld) {
                     ServerWorld serverWorld = (ServerWorld) world;
-                    FamilyAltarEntity familyAltar = STEntities.FAMILY_ALTAR.get().create(serverWorld, itemStack.getTag(), null, useContext.getPlayer(), pos, SpawnReason.SPAWN_EGG, true, true);
+                    AbstractAltarEntity altarEntity = this.entityTypeSupplier.get().create(serverWorld, itemStack.getTag(), null, useContext.getPlayer(), pos, SpawnReason.SPAWN_EGG, true, true);
 
-                    if (familyAltar == null) {
+                    if (altarEntity == null) {
                         return ActionResultType.FAIL;
                     }
                     float yRot = useContext.getHorizontalDirection().getOpposite().toYRot();
-                    familyAltar.moveTo(familyAltar.getX(), familyAltar.getY(), familyAltar.getZ(), yRot, 0.0F);
-                    familyAltar.setYBodyRot(yRot);
-                    FamilyAltarEntity.setAltarState(useContext.getItemInHand().getOrCreateTag(), familyAltar);
-                    serverWorld.addFreshEntityWithPassengers(familyAltar);
-                    NetworkHelper.sendAltarRotationUpdate(familyAltar, yRot);
-                    world.playSound(null, familyAltar.getX(), familyAltar.getY(), familyAltar.getZ(), SoundEvents.METAL_PLACE, SoundCategory.BLOCKS, 0.75F, 0.8F);
+                    altarEntity.moveTo(altarEntity.getX(), altarEntity.getY(), altarEntity.getZ(), yRot, 0.0F);
+                    altarEntity.setYBodyRot(yRot);
+                    FamilyAltarEntity.setAltarState(useContext.getItemInHand().getOrCreateTag(), altarEntity);
+                    serverWorld.addFreshEntityWithPassengers(altarEntity);
+                    NetworkHelper.sendAltarRotationUpdate(altarEntity, yRot);
+                    world.playSound(null, altarEntity.getX(), altarEntity.getY(), altarEntity.getZ(), SoundEvents.METAL_PLACE, SoundCategory.BLOCKS, 0.75F, 0.8F);
                 }
                 itemStack.shrink(1);
                 return ActionResultType.sidedSuccess(world.isClientSide);
